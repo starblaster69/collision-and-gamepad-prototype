@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js'
 import { TownMap } from './TownMap'
 import { Game } from './game'
 import { Npc } from "./Npc"
+import { Gamepads } from './gamepads'
 
 export class Player extends PIXI.Sprite {
     //variables
@@ -10,10 +11,12 @@ export class Player extends PIXI.Sprite {
     private direction: number; //clockwise, starting at north, 0-3
     private health: number;
     private woodclubTexture: PIXI.Texture;
+    private tempTexture: PIXI.Texture;
     private townMap: TownMap;
     private game: Game;
+    private gamepads: Gamepads;
 
-    constructor(game: Game, townMap: TownMap, texture: PIXI.Texture, woodclubTexture: PIXI.Texture) {
+    constructor(game: Game, gamepads: Gamepads, townMap: TownMap, texture: PIXI.Texture, woodclubTexture: PIXI.Texture) {
         super(texture)
         
         console.log("hyaa! i am link!");
@@ -23,6 +26,7 @@ export class Player extends PIXI.Sprite {
         this.townMap = townMap;
 
         this.game = game;
+        this.gamepads = gamepads
         this.anchor.set(0.5);
         this.x = game.pixi.screen.width / 2;
         this.y = game.pixi.screen.height / 2;
@@ -44,6 +48,12 @@ export class Player extends PIXI.Sprite {
 
     //operations
     public update(delta: number) {
+        
+        if (this.gamepads.gamepads != undefined){
+            this.gamepadMove()
+            this.gamepadButton()
+        }
+    
 
         let mapwidth = 3050 //De breedte van het Map
         let mapheight = 2350 //De lengte van de Map
@@ -62,7 +72,7 @@ export class Player extends PIXI.Sprite {
         // console.log("X:", this.x, "Y:", this.y)
     }
     // ??? does some math idk ask Bilal
-    private clamp(num: number, min: number, max: number) {
+    public clamp(num: number, min: number, max: number) {
         return Math.min(Math.max(num, min), max)
     }
 
@@ -116,10 +126,65 @@ export class Player extends PIXI.Sprite {
         }
     }
 
+    private gamepadMove(){
+        // console.log(this.gamepads.axesHandler)
+        let leftPos: any[] = [];
+        let x = this.gamepads.axesHandler(0)
+        let y = this.gamepads.axesHandler(1)
+        if(x != null && y != null){
+            leftPos.push(x)
+            leftPos.push(y)
+        }
+        
+        // console.log(leftPos)
+        let i = 0
+        for(let coord of leftPos){
+            if (i == 0){
+                if(coord < -0.5) {
+                    this.xspeed = -3
+                } else if(coord > 0.5) {
+                    this.xspeed = 3
+                } else {
+                    this.xspeed = 0
+                } i = 1
+            }
+            if (i == 1){
+                if(coord < -0.5) {
+                    this.yspeed = -3
+                } else if(coord > 0.5) {
+                    this.yspeed = 3
+                } else {
+                    this.yspeed = 0
+                } 
+            }
+        }
+    }
+
+    private gamepadButton(){
+        let buttonDown = this.gamepads.buttonHandler()
+        // console.log(buttonDown)
+
+        switch (buttonDown) {
+            case 0: 
+                this.interact()
+                break
+            case 1:
+                this.attack()
+                break
+            case 2:
+                break
+            case 3:
+                this.openInventory()
+                break
+        }
+    }
+
     // attacks, changes character sprite to woodenclub. not right.
     private attack() {
         console.log("ATTACKKKKK")
+        this.tempTexture = this.texture
         this.texture = this.woodclubTexture
+        this.woodclubTexture = this.tempTexture
     }
 
     // interacts with the first npc in the array that has this.inRange == true,

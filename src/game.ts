@@ -3,15 +3,10 @@ import { Assets } from './assets'
 import { TownMap } from "./TownMap"
 import { Player} from "./Player"
 import { Npc } from "./Npc"
+import { Gamepads } from "./gamepads"
 import { UPDATE_PRIORITY } from 'pixi.js'
 import { QuestTracker } from './QuestTracker'
-
-window.addEventListener("gamepadconnected", function(e) {
-    console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-      e.gamepad.index, e.gamepad.id,
-      e.gamepad.buttons.length, e.gamepad.axes.length);
-  });
-  
+ 
 /* 
 ** alle afbeelding worden nu geladen in assets.ts. assets.ts is extended als pixi.assets.
 ** als je een nieuwe npc sprite toe wilt voegen, maak een entry aan in static/npcs.json, 
@@ -22,15 +17,17 @@ window.addEventListener("gamepadconnected", function(e) {
 export class Game{
     public pixi : PIXI.Application //canvas element in de html file
     public assets = new Assets(this)
+    public gamepads = new Gamepads(this)
     public questTracker : QuestTracker
     private player : Player
     private npcsToLoad : string[] = []
     public npcs: Npc[] = []
     public townMap : TownMap
 
+
     constructor(){
         console.log("ik ben een game")
-        this.pixi = new PIXI.Application({ width: 700, height: 500})
+        this.pixi = new PIXI.Application({ width: 1440, height: 1129})
         // console.log(this.pixi)
         this.pixi.stage.x = this.pixi.screen.width / 2;
         this.pixi.stage.y = this.pixi.screen.height / 2;
@@ -47,7 +44,7 @@ export class Game{
         this.pixi.stage.addChild(this.townMap)
 
         //creates player character
-        this.player = new Player(this, this.townMap, this.assets.resources["playerSprite"].texture!, this.assets.resources['woodclubTexture'].texture!)
+        this.player = new Player(this, this.gamepads, this.townMap, this.assets.resources["playerSprite"].texture!, this.assets.resources['woodclubTexture'].texture!)
         this.pixi.stage.addChild(this.player)
 
         //creates npc
